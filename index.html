@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>بازی شلم حرفه‌ای آنلاین | Shelem Online</title>
+    <!-- Web App / PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0d1b1e">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>♠️</text></svg>">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Vazirmatn) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <!-- Tone.js for Sound FX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'sans-serif'],
+                    },
+                    colors: {
+                        felt: '#0b3c2a',
+                        'felt-dark': '#062419',
+                        gold: '#d4af37',
+                        'gold-light': '#f3e5ab',
+                        'card-bg': '#ffffff',
+                    },
+                    boxShadow: {
+                        'glow': '0 0 20px rgba(212, 175, 55, 0.4)',
+                        'card': '0 4px 10px rgba(0, 0, 0, 0.35)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            background: radial-gradient(circle at center, #142328 0%, #080f12 100%);
+        }
+        
+        .table-surface {
+            background: radial-gradient(ellipse at center, #11573c 0%, #093724 65%, #052216 100%);
+            box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.8), 0 10px 40px rgba(0,0,0,0.7);
+            border: 12px solid #2e1a0b;
+        }
+
+        .card {
+            transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+            perspective: 1000px;
+        }
+        .my-hand-card:hover {
+            transform: translateY(-22px) scale(1.08) !important;
+            z-index: 50 !important;
+        }
+        .suit-red { color: #dc2626; }
+        .suit-black { color: #1e293b; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d4af37;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- Top Navigation Bar -->
+    <header class="w-full bg-slate-900/90 backdrop-blur border-b border-gold/30 px-3 sm:px-6 py-2.5 flex justify-between items-center z-40 sticky top-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-yellow-400 flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950 font-black text-xl">
+                ♠
+            </div>
+            <div>
+                <h1 class="text-base sm:text-lg font-bold text-gold tracking-wide flex items-center gap-2">
+                    شلم آنلاین VIP
+                    <span class="text-[10px] bg-red-600/90 text-white px-2 py-0.5 rounded-full font-normal">نسخه زنده</span>
+                </h1>
+                <p class="text-xs text-slate-400 hidden sm:block">سیستم پیشرفته هوش مصنوعی & مسابقات تعهد</p>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex items-center gap-1.5 sm:gap-3 text-xs sm:text-sm">
+            <button onclick="switchTab('lobby')" id="tab-lobby" class="nav-btn px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-users-rectangle text-cyan-400"></i>
+                <span class="hidden md:inline">لابی و میزها</span>
+            </button>
+            <button onclick="switchTab('game')" id="tab-game" class="nav-btn px-3 py-1.5 rounded-lg bg-gold text-slate-950 font-bold transition flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-gamepad"></i>
+                <span class="hidden md:inline">میز بازی</span>
+            </button>
+            <button onclick="switchTab('profile')" id="tab-profile" class="nav-btn px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-user-astronaut"></i>
+                <span class="hidden md:inline">پروفایل</span>
+            </button>
+            <button onclick="switchTab('leaderboard')" id="tab-leaderboard" class="nav-btn px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-trophy text-yellow-400"></i>
+                <span class="hidden md:inline">رده‌بندی</span>
+            </button>
+            <button onclick="switchTab('admin')" id="tab-admin" class="nav-btn px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                <span class="hidden md:inline">مدیریت</span>
+            </button>
+            <!-- Audio Toggle -->
+            <button onclick="toggleAudio()" id="audio-toggle-btn" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300" title="صدا">
+                <i class="fa-solid fa-volume-high"></i>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 flex flex-col p-2 sm:p-4 max-w-7xl mx-auto w-full relative">
+
+        <!-- ==================== LOBBY & MULTIPLAYER ROOMS ==================== -->
+        <section id="view-lobby" class="hidden flex-1 max-w-4xl mx-auto w-full py-2">
+            <div class="bg-slate-900/90 border border-slate-700/80 rounded-3xl p-5 sm:p-7 shadow-2xl backdrop-blur">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-5">
+                    <div>
+                        <h2 class="text-xl font-bold text-gold flex items-center gap-2">
+                            <i class="fa-solid fa-network-wired text-cyan-400"></i>
+                            لابی آنلاین و مدیریت صندلی‌های میز
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">امکان بازی همزمان انسان‌ها (چند دستگاه/تب) همراه با ربات‌های هوشمند کمکی</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="createCustomRoom()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-xs font-bold shadow hover:brightness-110 flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> ایجاد میز تازه
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Current Table Seats Assignment Panel -->
+                <div class="my-6 p-4 rounded-2xl bg-slate-950/70 border border-slate-800">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-chair"></i> وضعیت صندلی‌های میز فعلی شما (کد اتاق: <span id="current-room-code" class="font-mono text-gold">VIP-101</span>)
+                        </span>
+                        <span class="text-[11px] text-slate-400">تغییر صندلی به انسان یا بات با یک کلیک</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                        <!-- South Seat -->
+                        <div class="p-3 rounded-xl bg-slate-900 border border-blue-500/40 text-center">
+                            <div class="text-[10px] text-blue-400 font-bold mb-1">جنوب (شما - تیم ۱)</div>
+                            <div class="font-bold text-white text-sm" id="seat-name-south">شما</div>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-950 text-blue-300 mt-1 inline-block">انسان (کاپیتان)</span>
+                        </div>
+
+                        <!-- North Seat -->
+                        <div class="p-3 rounded-xl bg-slate-900 border border-emerald-500/40 text-center">
+                            <div class="text-[10px] text-emerald-400 font-bold mb-1">شمال (یار شما - تیم ۱)</div>
+                            <div class="font-bold text-white text-sm" id="seat-name-north">سامان</div>
+                            <div class="mt-2 flex justify-center gap-1">
+                                <button onclick="toggleSeatType('north')" id="btn-seat-north" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-gold border border-gold/30">
+                                    تغییر به: بازیکن انسان
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- East Seat -->
+                        <div class="p-3 rounded-xl bg-slate-900 border border-amber-500/40 text-center">
+                            <div class="text-[10px] text-amber-400 font-bold mb-1">شرق (رقیب - تیم ۲)</div>
+                            <div class="font-bold text-white text-sm" id="seat-name-east">پرهام</div>
+                            <div class="mt-2 flex justify-center gap-1">
+                                <button onclick="toggleSeatType('east')" id="btn-seat-east" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-gold border border-gold/30">
+                                    تغییر به: بازیکن انسان
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- West Seat -->
+                        <div class="p-3 rounded-xl bg-slate-900 border border-amber-500/40 text-center">
+                            <div class="text-[10px] text-amber-400 font-bold mb-1">غرب (رقیب - تیم ۲)</div>
+                            <div class="font-bold text-white text-sm" id="seat-name-west">آرش</div>
+                            <div class="mt-2 flex justify-center gap-1">
+                                <button onclick="toggleSeatType('west')" id="btn-seat-west" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-gold border border-gold/30">
+                                    تغییر به: بازیکن انسان
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available Public Rooms List -->
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold text-slate-300">میزهای در دسترس آنلاین</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="public-rooms-list">
+                        <!-- Injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 1. GAME VIEW ==================== -->
+        <section id="view-game" class="flex-1 flex flex-col items-center justify-between relative">
+            
+            <!-- Game Info & Score Board -->
+            <div class="w-full max-w-4xl bg-slate-900/80 backdrop-blur border border-slate-700/80 rounded-2xl p-2.5 sm:p-4 mb-2 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm shadow-md">
+                <!-- Teams Scores -->
+                <div class="flex items-center gap-4 sm:gap-8">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span class="font-bold text-slate-200">تیم ما (شما و شمال):</span>
+                        <span id="score-team1" class="text-base sm:text-lg font-black text-emerald-400 font-mono">0</span>
+                        <span class="text-[11px] text-slate-400">(دست: <span id="round-points-team1" class="text-white">0</span>)</span>
+                    </div>
+                    <div class="h-6 w-px bg-slate-700"></div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                        <span class="font-bold text-slate-200">تیم رقیب (شرق و غرب):</span>
+                        <span id="score-team2" class="text-base sm:text-lg font-black text-amber-400 font-mono">0</span>
+                        <span class="text-[11px] text-slate-400">(دست: <span id="round-points-team2" class="text-white">0</span>)</span>
+                    </div>
+                </div>
+
+                <!-- Bidding / Hokm Info -->
+                <div class="flex items-center gap-3">
+                    <div class="bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-2">
+                        <span class="text-slate-400">تعهد:</span>
+                        <span id="display-bid" class="font-bold text-gold">در حال خواندن</span>
+                    </div>
+                    <div class="bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-2">
+                        <span class="text-slate-400">حکم:</span>
+                        <span id="display-trump" class="font-bold text-lg text-white">نامشخص</span>
+                    </div>
+                    <button onclick="newGameModal()" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center gap-1 border border-slate-700" title="شروع بازی تازه">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>شروع مجدد</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Virtual Shelem Felt Table -->
+            <div class="table-surface w-full max-w-4xl h-[520px] sm:h-[580px] rounded-[3rem] relative flex items-center justify-center overflow-hidden my-auto">
+                
+                <!-- Center Logo / Felt Markings -->
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
+                    <div class="text-9xl font-black tracking-widest text-white">SHELEM</div>
+                </div>
+
+                <!-- Status Banner / Messages overlay -->
+                <div id="game-status-banner" class="absolute top-4 bg-slate-900/90 border border-gold/40 text-gold-light px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold shadow-lg z-30 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-bell text-gold animate-bounce"></i>
+                    <span id="status-text">به بازی شلم آنلاین خوش آمدید! در حال آماده‌سازی دست...</span>
+                </div>
+
+                <!-- NORTH (Partner) -->
+                <div class="absolute top-3 flex flex-col items-center z-20">
+                    <div class="relative flex items-center gap-2 bg-slate-950/70 backdrop-blur px-3 py-1.5 rounded-full border border-slate-700 shadow">
+                        <div class="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold">یار</div>
+                        <div class="text-right">
+                            <div class="text-xs font-bold text-emerald-400">سامان (یار شما)</div>
+                            <div class="text-[10px] text-slate-400">کارت‌ها: <span id="cards-count-north" class="text-white font-mono">12</span></div>
+                        </div>
+                        <span id="badge-north" class="hidden text-[10px] bg-gold text-slate-950 px-1.5 py-0.5 rounded font-bold">حاکم</span>
+                    </div>
+                    <!-- Played Card Spot North -->
+                    <div id="trick-north" class="w-14 h-20 sm:w-16 sm:h-24 mt-2 rounded-lg border-2 border-dashed border-white/20 flex items-center justify-center"></div>
+                </div>
+
+                <!-- WEST (Opponent 1) -->
+                <div class="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2 z-20">
+                    <div class="flex flex-col items-center bg-slate-950/70 backdrop-blur px-2 py-3 rounded-2xl border border-slate-700 shadow">
+                        <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-xs font-bold">غرب</div>
+                        <span class="text-xs font-bold text-amber-400 mt-1">آرش</span>
+                        <span class="text-[10px] text-slate-400"><span id="cards-count-west" class="text-white font-mono">12</span> کارت</span>
+                        <span id="badge-west" class="hidden text-[10px] bg-gold text-slate-950 px-1 py-0.5 rounded font-bold mt-1">حاکم</span>
+                    </div>
+                    <!-- Played Card Spot West -->
+                    <div id="trick-west" class="w-14 h-20 sm:w-16 sm:h-24 rounded-lg border-2 border-dashed border-white/20 flex items-center justify-center"></div>
+                </div>
+
+                <!-- EAST (Opponent 2) -->
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 z-20 flex-row-reverse">
+                    <div class="flex flex-col items-center bg-slate-950/70 backdrop-blur px-2 py-3 rounded-2xl border border-slate-700 shadow">
+                        <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-xs font-bold">شرق</div>
+                        <span class="text-xs font-bold text-amber-400 mt-1">پرهام</span>
+                        <span class="text-[10px] text-slate-400"><span id="cards-count-east" class="text-white font-mono">12</span> کارت</span>
+                        <span id="badge-east" class="hidden text-[10px] bg-gold text-slate-950 px-1 py-0.5 rounded font-bold mt-1">حاکم</span>
+                    </div>
+                    <!-- Played Card Spot East -->
+                    <div id="trick-east" class="w-14 h-20 sm:w-16 sm:h-24 rounded-lg border-2 border-dashed border-white/20 flex items-center justify-center"></div>
+                </div>
+
+                <!-- CENTER TRICK AREA -->
+                <div class="absolute flex flex-col items-center justify-center pointer-events-none">
+                    <!-- South Played Card -->
+                    <div id="trick-south" class="w-14 h-20 sm:w-16 sm:h-24 rounded-lg border-2 border-dashed border-white/20 flex items-center justify-center mb-1"></div>
+                </div>
+
+                <!-- Bidding Dialog Overlay -->
+                <div id="bidding-modal" class="absolute inset-0 bg-black/75 backdrop-blur-sm z-40 flex flex-col items-center justify-center p-4">
+                    <div class="bg-slate-900 border border-gold/40 rounded-3xl p-5 max-w-md w-full shadow-2xl text-center">
+                        <div class="inline-flex p-3 rounded-2xl bg-gold/10 text-gold mb-3 text-2xl">
+                            <i class="fa-solid fa-gavel"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-1">مرحله اعلام تعهد (تعهد خوانی)</h3>
+                        <p class="text-xs text-slate-400 mb-4">بالاترین تعهد فعلی: <span id="modal-highest-bid" class="text-gold font-bold font-mono">100 توسط هیچکس</span></p>
+
+                        <!-- Controls -->
+                        <div class="flex items-center justify-center gap-3 mb-5">
+                            <button onclick="adjustBidStep(-5)" class="w-10 h-10 rounded-xl bg-slate-800 text-xl font-bold hover:bg-slate-700 active:scale-95">-</button>
+                            <div class="w-28 py-2 rounded-xl bg-slate-800/90 border border-slate-600 font-mono text-2xl font-black text-amber-300" id="current-bid-input">105</div>
+                            <button onclick="adjustBidStep(5)" class="w-10 h-10 rounded-xl bg-slate-800 text-xl font-bold hover:bg-slate-700 active:scale-95">+</button>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="submitBid(false)" class="py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 font-bold text-slate-950 text-sm shadow">
+                                ثبت تعهد
+                            </button>
+                            <button onclick="submitBid(true)" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 font-medium text-slate-300 text-sm border border-slate-700">
+                                پاس (Pass)
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-3">
+                            <button onclick="submitSpecialBid('shelem')" class="py-2 rounded-xl bg-red-950/70 hover:bg-red-900 border border-red-500/50 text-red-300 text-xs font-bold transition">
+                                💥 اعلام شلم (۳۳۰ امتیاز)
+                            </button>
+                            <button onclick="submitSpecialBid('super_shelem')" class="py-2 rounded-xl bg-amber-950/80 hover:bg-amber-900 border border-amber-400 text-amber-300 text-xs font-black shadow-glow transition">
+                                👑 سوپر شلم (۶۶۰ امتیاز)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Select Trump (Hokm) Overlay -->
+                <div id="hokm-modal" class="hidden absolute inset-0 bg-black/80 backdrop-blur-sm z-40 flex flex-col items-center justify-center p-4">
+                    <div class="bg-slate-900 border border-gold/40 rounded-3xl p-5 max-w-sm w-full shadow-2xl text-center">
+                        <h3 class="text-lg font-bold text-white mb-2">تبریک! شما حاکم شدید</h3>
+                        <p class="text-xs text-slate-400 mb-5">خال حکم این بازی را انتخاب فرمایید:</p>
+
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <button onclick="chooseTrump('spades')" class="p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-600 flex items-center justify-center gap-3 transition">
+                                <span class="text-2xl text-slate-200">♠</span>
+                                <span class="font-bold">پیک (خشت سیاه)</span>
+                            </button>
+                            <button onclick="chooseTrump('hearts')" class="p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-600 flex items-center justify-center gap-3 transition">
+                                <span class="text-2xl text-rose-500">♥</span>
+                                <span class="font-bold text-rose-400">دل (قرمز)</span>
+                            </button>
+                            <button onclick="chooseTrump('clubs')" class="p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-600 flex items-center justify-center gap-3 transition">
+                                <span class="text-2xl text-slate-200">♣</span>
+                                <span class="font-bold">گشنیز (خاج)</span>
+                            </button>
+                            <button onclick="chooseTrump('diamonds')" class="p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-600 flex items-center justify-center gap-3 transition">
+                                <span class="text-2xl text-amber-500">♦</span>
+                                <span class="font-bold text-amber-400">خشت</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Anbar (Talon discard) Modal -->
+                <div id="anbar-modal" class="hidden absolute inset-0 bg-black/85 backdrop-blur-md z-40 flex flex-col items-center justify-center p-4">
+                    <div class="bg-slate-900 border border-gold/40 rounded-3xl p-5 max-w-lg w-full shadow-2xl text-center">
+                        <h3 class="text-lg font-bold text-gold mb-1">۴ کارت انبار به دست شما اضافه شد</h3>
+                        <p class="text-xs text-slate-300 mb-3">لطفاً دقیقا ۴ کارت غیرلازم را از دست خود انتخاب و کنار بگذارید (کنار گذاشتن انبار):</p>
+                        <div id="anbar-selection-info" class="text-xs font-mono text-amber-400 mb-3">کارت‌های انتخاب شده برای خروج: 0 از 4</div>
+                        <div id="anbar-card-pool" class="flex flex-wrap justify-center gap-1.5 max-h-56 overflow-y-auto p-2 bg-slate-950/60 rounded-xl mb-4">
+                            <!-- Cards will be populated dynamically -->
+                        </div>
+                        <button onclick="confirmAnbarDiscard()" id="btn-confirm-anbar" disabled class="w-full py-2.5 rounded-xl bg-slate-700 text-slate-400 font-bold text-sm cursor-not-allowed">
+                            تایید و شروع بازی
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hand Area (South / User) -->
+                <div class="absolute -bottom-2 w-full flex flex-col items-center z-30 px-2">
+                    <!-- User info strip -->
+                    <div class="flex items-center gap-2 bg-slate-950/80 backdrop-blur px-3 py-1 rounded-full border border-slate-700 mb-1">
+                        <div class="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold">شما</div>
+                        <span id="player-display-name" class="text-xs font-bold text-blue-400">بازیکن شلم</span>
+                        <span id="badge-south" class="hidden text-[10px] bg-gold text-slate-950 px-1.5 py-0.2 rounded font-bold">حاکم</span>
+                        <span id="turn-indicator" class="text-[10px] text-emerald-400 animate-pulse font-medium">نوبت شماست!</span>
+                    </div>
+
+                    <!-- Cards Container -->
+                    <div id="my-cards-container" class="flex justify-center items-end -space-x-4 sm:-space-x-7 hover:space-x-0 transition-all duration-300 overflow-x-auto max-w-full pb-3 pt-4 px-4">
+                        <!-- Cards injected by JS -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Mobile Action Bar -->
+            <div class="w-full max-w-4xl flex items-center justify-between mt-2 px-2 text-xs text-slate-400">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span>قانون فعال: <span id="current-mode-label" class="text-slate-200">با جوکر (تک‌خال، جوکر قرمز، جوکر سیاه)</span></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="showRulesModal()" class="hover:text-gold transition"><i class="fa-solid fa-circle-question ml-1"></i>راهنمای امتیازات</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 2. PROFILE VIEW ==================== -->
+        <section id="view-profile" class="hidden flex-1 max-w-2xl mx-auto w-full py-4">
+            <div class="bg-slate-900/90 border border-slate-700 rounded-3xl p-6 shadow-2xl backdrop-blur">
+                <div class="flex flex-col sm:flex-row items-center gap-5 border-b border-slate-800 pb-6">
+                    <div class="relative group">
+                        <div id="profile-avatar-display" class="w-24 h-24 rounded-2xl bg-gradient-to-tr from-amber-600 to-yellow-400 flex items-center justify-center text-4xl shadow-glow">
+                            🦁
+                        </div>
+                    </div>
+                    <div class="flex-1 text-center sm:text-right">
+                        <div class="flex items-center justify-center sm:justify-start gap-2 mb-1">
+                            <h2 id="prof-name" class="text-xl font-bold text-white">قهرمان شلم</h2>
+                            <span class="px-2 py-0.5 rounded-full bg-gold/20 text-gold text-xs border border-gold/40">VIP Member</span>
+                        </div>
+                        <p class="text-xs text-slate-400">شناسه کاربر: <span id="prof-id" class="font-mono text-slate-300">SHL-9842</span></p>
+                        <div class="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start">
+                            <button onclick="changeAvatar('🦁')" class="px-2 py-1 rounded bg-slate-800 text-sm hover:bg-slate-700">🦁</button>
+                            <button onclick="changeAvatar('🦅')" class="px-2 py-1 rounded bg-slate-800 text-sm hover:bg-slate-700">🦅</button>
+                            <button onclick="changeAvatar('👑')" class="px-2 py-1 rounded bg-slate-800 text-sm hover:bg-slate-700">👑</button>
+                            <button onclick="changeAvatar('♠️')" class="px-2 py-1 rounded bg-slate-800 text-sm hover:bg-slate-700">♠️</button>
+                            <button onclick="changeAvatar('🔥')" class="px-2 py-1 rounded bg-slate-800 text-sm hover:bg-slate-700">🔥</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-6">
+                    <div class="bg-slate-800/60 p-3 rounded-2xl border border-slate-700/60 text-center">
+                        <span class="text-slate-400 text-xs block mb-1">بازی‌های کل</span>
+                        <span id="stat-total" class="text-lg font-bold font-mono text-white">0</span>
+                    </div>
+                    <div class="bg-slate-800/60 p-3 rounded-2xl border border-slate-700/60 text-center">
+                        <span class="text-slate-400 text-xs block mb-1">بردها</span>
+                        <span id="stat-wins" class="text-lg font-bold font-mono text-emerald-400">0</span>
+                    </div>
+                    <div class="bg-slate-800/60 p-3 rounded-2xl border border-slate-700/60 text-center">
+                        <span class="text-slate-400 text-xs block mb-1">تعهد موفق</span>
+                        <span id="stat-bids" class="text-lg font-bold font-mono text-amber-400">100%</span>
+                    </div>
+                    <div class="bg-slate-800/60 p-3 rounded-2xl border border-slate-700/60 text-center">
+                        <span class="text-slate-400 text-xs block mb-1">ریتینگ و امتیاز</span>
+                        <span id="stat-rating" class="text-lg font-bold font-mono text-gold">1,450</span>
+                    </div>
+                </div>
+
+                <!-- Edit Profile Form -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">تغییر نام مستعار:</label>
+                        <input id="input-username" type="text" maxlength="15" value="قهرمان شلم" class="w-full px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-gold text-sm">
+                    </div>
+                    <button onclick="saveUserProfile()" class="w-full py-2.5 rounded-xl bg-gold text-slate-950 font-bold text-sm hover:bg-yellow-400 transition">
+                        ذخیره تغییرات پروفایل
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 3. LEADERBOARD VIEW ==================== -->
+        <section id="view-leaderboard" class="hidden flex-1 max-w-3xl mx-auto w-full py-4">
+            <div class="bg-slate-900/90 border border-slate-700 rounded-3xl p-6 shadow-2xl backdrop-blur">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-gold flex items-center gap-2">
+                            <i class="fa-solid fa-trophy text-yellow-400"></i>
+                            جدول برترین‌های مسابقات شلم
+                        </h2>
+                        <p class="text-xs text-slate-400">رتبه‌بندی هفتگی بر اساس ضریب برد و ریتینگ جهانی</p>
+                    </div>
+                    <span class="text-xs bg-slate-800 px-3 py-1 rounded-full text-slate-300">بروزرسانی زنده</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right text-xs sm:text-sm">
+                        <thead>
+                            <tr class="text-slate-400 border-b border-slate-800">
+                                <th class="py-3 px-2">رتبه</th>
+                                <th class="py-3 px-2">بازیکن</th>
+                                <th class="py-3 px-2">امتیاز / ریتینگ</th>
+                                <th class="py-3 px-2">برد / باخت</th>
+                                <th class="py-3 px-2">درصد موفقیت</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-tbody" class="divide-y divide-slate-800/60 font-medium">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 4. ADMIN PANEL VIEW ==================== -->
+        <section id="view-admin" class="hidden flex-1 max-w-4xl mx-auto w-full py-4">
+            <div class="bg-slate-900/90 border border-slate-700 rounded-3xl p-6 shadow-2xl backdrop-blur">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-emerald-400 flex items-center gap-2">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>
+                            پنل مدیریت و تنظیمات پیشرفته بازی
+                        </h2>
+                        <p class="text-xs text-slate-400">تنظیم قوانین رسمی، ضرایب امتیاز و مدیریت دیتابیس کاربران</p>
+                    </div>
+                    <div class="px-3 py-1 rounded-full bg-emerald-950 text-emerald-400 text-xs border border-emerald-800">
+                        سطح دسترسی: ادمین کل
+                    </div>
+                </div>
+
+                <!-- Admin Metrics -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+                        <span class="text-xs text-slate-400">کاربران ثبت‌شده</span>
+                        <div class="text-2xl font-black text-white mt-1">1,248 نفر</div>
+                    </div>
+                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+                        <span class="text-xs text-slate-400">دست‌های بازی‌شده امروز</span>
+                        <div class="text-2xl font-black text-gold mt-1">4,910 دست</div>
+                    </div>
+                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+                        <span class="text-xs text-slate-400">وضعیت سرور لابی</span>
+                        <div class="text-2xl font-black text-emerald-400 mt-1">آنلاین (0ms)</div>
+                    </div>
+                </div>
+
+                <!-- Game Rule Toggles -->
+                <div class="bg-slate-950/60 p-5 rounded-2xl border border-slate-800 mb-6 space-y-4">
+                    <h3 class="text-sm font-bold text-gold">تنظیمات هسته بازی شلم</h3>
+
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-sm font-semibold text-white block">حالت بازی با جوکر</span>
+                            <span class="text-xs text-slate-400">اضافه شدن جوکر قرمز (Red Joker) و جوکر سیاه (Black Joker)</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="admin-joker-toggle" checked class="sr-only peer" onchange="toggleAdminJoker(this.checked)">
+                            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                    </div>
+
+                    <div class="flex items-center justify-between border-t border-slate-800 pt-3">
+                        <div>
+                            <span class="text-sm font-semibold text-white block">سقف امتیاز نهایی برای پیروزی</span>
+                            <span class="text-xs text-slate-400">بازی معمولاً تا ۶۶۰، ۱۱۶۰ یا ۱۲۰۰ امتیاز انجام می‌شود</span>
+                        </div>
+                        <select id="admin-target-score" onchange="updateTargetScore(this.value)" class="bg-slate-800 text-white text-xs rounded-lg px-3 py-2 border border-slate-700">
+                            <option value="660">۶۶۰ امتیاز (بازی سریع)</option>
+                            <option value="1160" selected>۱۱۶۰ امتیاز (استاندارد)</option>
+                            <option value="1200">۱۲۰۰ امتیاز (حرفه‌ای)</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center justify-between border-t border-slate-800 pt-3">
+                        <div>
+                            <span class="text-sm font-semibold text-white block">حداقل تعهد مجاز</span>
+                            <span class="text-xs text-slate-400">کف شروع تعهدخوانی روی میز</span>
+                        </div>
+                        <select id="admin-min-bid" class="bg-slate-800 text-white text-xs rounded-lg px-3 py-2 border border-slate-700">
+                            <option value="100" selected>۱۰۰ امتیاز</option>
+                            <option value="105">۱۰۵ امتیاز</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Reset Data & Actions -->
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="resetLeaderboardData()" class="px-4 py-2 rounded-xl bg-red-950/80 hover:bg-red-900 border border-red-700/50 text-red-300 text-xs font-bold transition">
+                        ریست کردن آمار و جدول رده‌بندی
+                    </button>
+                    <button onclick="generateBotTourney()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition">
+                        شبیه‌سازی نتایج ربات‌ها در جدول
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modals & Popups -->
+
+    <!-- Rules Modal -->
+    <div id="rules-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-lg w-full shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-gold flex items-center gap-2">
+                    <i class="fa-solid fa-book-open"></i> قوانین و امتیازات بازی شلم
+                </h3>
+                <button onclick="closeRulesModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="text-xs sm:text-sm text-slate-300 space-y-3 leading-relaxed">
+                <p><strong class="text-white">ارزش کارت‌ها در شمارش:</strong></p>
+                <ul class="list-disc list-inside space-y-1 text-slate-300 pr-2">
+                    <li>هر کارت <span class="text-amber-400 font-bold">5</span> = ۵ امتیاز</li>
+                    <li>هر کارت <span class="text-amber-400 font-bold">10</span> = ۱۰ امتیاز</li>
+                    <li>هر کارت <span class="text-amber-400 font-bold">تک (Ace)</span> = ۱۰ امتیاز</li>
+                    <li><span class="text-red-400 font-bold">جوکر قرمز</span> = ۲۰ امتیاز (در حالت با جوکر)</li>
+                    <li><span class="text-slate-300 font-bold">جوکر سیاه</span> = ۱۵ امتیاز (در حالت با جوکر)</li>
+                    <li>مجموع کارت‌های امتیازی بدون جوکر: ۱۶۵ امتیاز (با ۵ امتیاز دست آخر = ۱۶۵ یا ۲۰۰ با جوکر)</li>
+                </ul>
+                <p><strong class="text-white">سلسله مراتب دست‌ها:</strong> جوکر قرمز بالاتر از همه، سپس جوکر سیاه، تک، شاه، بی‌بی، سرباز، ۱۰، ۹، ۸، ۷، ۶، ۵، ۴، ۳، ۲.</p>
+                <p><strong class="text-white">قانون انبار:</strong> ۴ کارت اولیه به صورت انبار پنهان می‌ماند و به حاکم تعلق می‌گیرد؛ حاکم پس از انتخاب حکم، ۴ کارت کم‌ارزش را به انبار کنار می‌گذارد.</p>
+            </div>
+            <button onclick="closeRulesModal()" class="mt-6 w-full py-2.5 rounded-xl bg-gold text-slate-950 font-bold text-sm">متوجه شدم</button>
+        </div>
+    </div>
+
+    <!-- Alert / Toast Notification -->
+    <div id="toast-box" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 border border-gold/50 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none text-xs sm:text-sm">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toast-msg">پیام سیستم</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="w-full bg-slate-950/80 border-t border-slate-800/80 py-2.5 px-4 text-center text-[11px] text-slate-500">
+        شلم آنلاین حرفه‌ای • طراحی شده منطبق بر وب اپلیکیشن PWA موبایل و دسکتاپ
+    </footer>
+
+    <!-- GAME LOGIC SCRIPT -->
+    <script>
+        /* ================= Sound Effects (Tone.js) ================= */
+        let audioEnabled = true;
+        let synth = null;
+
+        function initAudio() {
+            if (!synth && window.Tone) {
+                synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                synth.volume.value = -12;
+            }
+        }
+
+        function playSound(type) {
+            if (!audioEnabled) return;
+            try {
+                initAudio();
+                if (Tone.context.state !== 'running') {
+                    Tone.start();
+                }
+                const now = Tone.now();
+                if (type === 'card') {
+                    synth.triggerAttackRelease(["C5"], "32n", now);
+                } else if (type === 'win') {
+                    synth.triggerAttackRelease(["C4", "E4", "G4", "C5"], "8n", now);
+                } else if (type === 'bid') {
+                    synth.triggerAttackRelease(["F4", "A4"], "16n", now);
+                } else if (type === 'pass') {
+                    synth.triggerAttackRelease(["D3"], "16n", now);
+                }
+            } catch (e) {
+                // Audio safety fallback
+            }
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const btn = document.getElementById('audio-toggle-btn');
+            if (audioEnabled) {
+                btn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+                showToast("صدا فعال شد", "info");
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+                showToast("صدا بی‌صدا شد", "info");
+            }
+        }
+
+        /* ================= Toast Messages ================= */
+        function showToast(msg, type = "success") {
+            const toast = document.getElementById('toast-box');
+            const icon = document.getElementById('toast-icon');
+            const txt = document.getElementById('toast-msg');
+
+            txt.innerText = msg;
+            if (type === "success") {
+                icon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
+            } else if (type === "error") {
+                icon.className = "fa-solid fa-triangle-exclamation text-rose-500 text-lg";
+            } else {
+                icon.className = "fa-solid fa-circle-info text-amber-400 text-lg";
+            }
+
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 3000);
+        }
+
+        /* ================= Game Engine State ================= */
+        const SUITS = [
+            { id: 'spades', symbol: '♠', name: 'پیک', color: 'suit-black' },
+            { id: 'hearts', symbol: '♥', name: 'دل', color: 'suit-red' },
+            { id: 'clubs', symbol: '♣', name: 'گشنیز', color: 'suit-black' },
+            { id: 'diamonds', symbol: '♦', name: 'خشت', color: 'suit-red' }
+        ];
+
+        const RANKS = [
+            { val: 2, label: '2', points: 0, order: 2 },
+            { val: 3, label: '3', points: 0, order: 3 },
+            { val: 4, label: '4', points: 0, order: 4 },
+            { val: 5, label: '5', points: 5, order: 5 },
+            { val: 6, label: '6', points: 0, order: 6 },
+            { val: 7, label: '7', points: 0, order: 7 },
+            { val: 8, label: '8', points: 0, order: 8 },
+            { val: 9, label: '9', points: 0, order: 9 },
+            { val: 10, label: '10', points: 10, order: 10 },
+            { val: 11, label: 'J', points: 0, order: 11 },
+            { val: 12, label: 'Q', points: 0, order: 12 },
+            { val: 13, label: 'K', points: 0, order: 13 },
+            { val: 14, label: 'A', points: 10, order: 14 }
+        ];
+
+        const PLAYERS = ['south', 'east', 'north', 'west']; // South is User (Team 1 with North)
+        const PLAYER_NAMES = {
+            south: 'شما',
+            east: 'پرهام (رقیب)',
+            north: 'سامان (یار)',
+            west: 'آرش (رقیب)'
+        };
+
+        let gameState = {
+            withJoker: true,
+            targetScore: 1160,
+            teamScores: { team1: 0, team2: 0 },
+            roundPoints: { team1: 0, team2: 0 },
+            hands: { south: [], north: [], east: [], west: [] },
+            anbar: [],
+            currentBidder: null,
+            highestBid: 100,
+            highestBidder: null,
+            bidPasses: { south: false, north: false, east: false, west: false },
+            hakem: null,
+            trump: null,
+            trick: {},
+            trickLeadSuit: null,
+            turn: 'south',
+            phase: 'BIDDING', // BIDDING, SELECT_TRUMP, ANBAR_DISCARD, PLAYING, ROUND_OVER
+            cardsPlayedInTrick: 0,
+            userAnbarSelected: [],
+            leaderboard: [
+                { rank: 1, name: "کیوان تهرانی", rating: 1890, wins: 48, losses: 12, rate: "80%" },
+                { rank: 2, name: "نازنین راد", rating: 1740, wins: 39, losses: 14, rate: "73%" },
+                { rank: 3, name: "شما (قهرمان)", rating: 1450, wins: 15, losses: 5, rate: "75%" },
+                { rank: 4, name: "امیرحسین پوریا", rating: 1420, wins: 28, losses: 19, rate: "59%" },
+                { rank: 5, name: "مهسا کریمی", rating: 1310, wins: 22, losses: 20, rate: "52%" }
+            ]
+        };
+
+        /* ================= Deck & Deal Setup ================= */
+        const SUITS = [
+            { id: 'spades', symbol: '♠', name: 'پیک', color: 'suit-black' },
+            { id: 'hearts', symbol: '♥', name: 'دل', color: 'suit-red' },
+            { id: 'clubs', symbol: '♣', name: 'گشنیز', color: 'suit-black' },
+            { id: 'diamonds', symbol: '♦', name: 'خشت', color: 'suit-red' }
+        ];
+
+        // Multiplayer / Table Seat Configuration
+        let seatConfig = {
+            south: { type: 'human', name: 'شما (کاپیتان)' },
+            north: { type: 'bot', name: 'سامان (بات)' },
+            east: { type: 'bot', name: 'پرهام (بات)' },
+            west: { type: 'bot', name: 'آرش (بات)' }
+        };
+
+        const RANKS = [
+            { val: 2, label: '2', points: 0, order: 2 },
+            { val: 3, label: '3', points: 0, order: 3 },
+            { val: 4, label: '4', points: 0, order: 4 },
+            { val: 5, label: '5', points: 5, order: 5 },
+            { val: 6, label: '6', points: 0, order: 6 },
+            { val: 7, label: '7', points: 0, order: 7 },
+            { val: 8, label: '8', points: 0, order: 8 },
+            { val: 9, label: '9', points: 0, order: 9 },
+            { val: 10, label: '10', points: 10, order: 10 },
+            { val: 11, label: 'J', points: 0, order: 11 },
+            { val: 12, label: 'Q', points: 0, order: 12 },
+            { val: 13, label: 'K', points: 0, order: 13 },
+            { val: 14, label: 'A', points: 10, order: 14 }
+        ];
+
+        const PLAYERS = ['south', 'east', 'north', 'west'];
+        let PLAYER_NAMES = {
+            south: 'شما',
+            east: 'پرهام',
+            north: 'سامان',
+            west: 'آرش'
+        };
+
+        let gameState = {
+            withJoker: true,
+            targetScore: 1160,
+            teamScores: { team1: 0, team2: 0 },
+            roundPoints: { team1: 0, team2: 0 },
+            roundTricksWon: { team1: 0, team2: 0 },
+            hands: { south: [], north: [], east: [], west: [] },
+            anbar: [],
+            currentBidder: null,
+            highestBid: 100,
+            bidType: 'normal', // 'normal', 'shelem', 'super_shelem'
+            highestBidder: null,
+            bidPasses: { south: false, north: false, east: false, west: false },
+            hakem: null,
+            trump: null,
+            trick: {},
+            trickLeadSuit: null,
+            turn: 'south',
+            phase: 'BIDDING',
+            cardsPlayedInTrick: 0,
+            userAnbarSelected: [],
+            roomCode: 'VIP-101',
+            leaderboard: [
+                { rank: 1, name: "کیوان تهرانی", rating: 1890, wins: 48, losses: 12, rate: "80%" },
+                { rank: 2, name: "نازنین راد", rating: 1740, wins: 39, losses: 14, rate: "73%" },
+                { rank: 3, name: "شما (قهرمان)", rating: 1450, wins: 15, losses: 5, rate: "75%" },
+                { rank: 4, name: "امیرحسین پوریا", rating: 1420, wins: 28, losses: 19, rate: "59%" },
+                { rank: 5, name: "مهسا کریمی", rating: 1310, wins: 22, losses: 20, rate: "52%" }
+            ]
+        };
+
+        /* Broadcast Channel for real-time tab-to-tab multiplayer sync */
+        const channel = new BroadcastChannel('shelem_game_bus');
+        channel.onmessage = (event) => {
+            const data = event.data;
+            if (data && data.roomCode === gameState.roomCode) {
+                if (data.type === 'SYNC_STATE') {
+                    // Update external multiplayer actions
+                    if (data.playedCard && data.player !== 'south') {
+                        playCard(data.player, data.playedCard, true);
+                    }
+                }
+            }
+        };
+
+        /* ================= Redesigned Cards: Corner Suit + Center Face ================= */
+        function createCardHTML(card, isSmall = false) {
+            const isRed = card.suitColor.includes('red');
+            const colorClass = isRed ? 'text-rose-600' : 'text-slate-900';
+            const bgGradient = card.isJoker ? (card.jokerType === 'red' ? 'bg-gradient-to-br from-rose-50 to-amber-50' : 'bg-gradient-to-br from-slate-100 to-zinc-200') : 'bg-white';
+
+            return `
+                <!-- Top-Right Corner Suit Symbol -->
+                <div class="absolute top-1 right-1.5 flex flex-col items-center leading-none ${colorClass}">
+                    <span class="text-xs sm:text-sm font-black font-sans">${card.label}</span>
+                    <span class="text-[10px] sm:text-xs">${card.suitSymbol}</span>
+                </div>
+
+                <!-- Bottom-Left Corner Suit Symbol (Inverted) -->
+                <div class="absolute bottom-1 left-1.5 flex flex-col items-center leading-none rotate-180 ${colorClass}">
+                    <span class="text-xs sm:text-sm font-black font-sans">${card.label}</span>
+                    <span class="text-[10px] sm:text-xs">${card.suitSymbol}</span>
+                </div>
+
+                <!-- Center Artwork / Big Rank & Symbol -->
+                <div class="m-auto flex flex-col items-center justify-center text-center select-none ${colorClass}">
+                    ${card.isJoker ? `
+                        <div class="text-xl sm:text-2xl font-black">🃏</div>
+                        <div class="text-[9px] font-black tracking-wider uppercase">${card.name}</div>
+                    ` : `
+                        <span class="text-lg sm:text-2xl font-black font-mono leading-none tracking-tight">${card.label}</span>
+                        <span class="text-sm sm:text-base opacity-75">${card.suitSymbol}</span>
+                    `}
+                </div>
+            `;
+        }
+
+        function renderMyHand() {
+            const container = document.getElementById('my-cards-container');
+            container.innerHTML = '';
+
+            gameState.hands.south.forEach((card) => {
+                const el = document.createElement('div');
+                const isSelectedForAnbar = gameState.userAnbarSelected.includes(card.id);
+                el.className = `my-hand-card relative w-12 sm:w-16 h-20 sm:h-24 bg-white rounded-xl shadow-card border ${isSelectedForAnbar ? 'border-amber-400 ring-2 ring-amber-400 -translate-y-4' : 'border-slate-300'} flex flex-col justify-between p-1 cursor-pointer select-none transition-all duration-200`;
+                el.innerHTML = createCardHTML(card);
+                el.onclick = () => onCardClicked(card);
+                container.appendChild(el);
+            });
+        }
+
+        function renderTableTricks() {
+            PLAYERS.forEach(player => {
+                const spot = document.getElementById(`trick-${player}`);
+                spot.innerHTML = '';
+                const card = gameState.trick[player];
+                if (card) {
+                    const el = document.createElement('div');
+                    el.className = `relative w-14 h-20 sm:w-16 sm:h-24 bg-white rounded-xl shadow-card border border-slate-300 flex flex-col justify-between p-1 animate-fadeIn select-none`;
+                    el.innerHTML = createCardHTML(card, true);
+                    spot.appendChild(el);
+                }
+            });
+        }
+
+        /* ================= Super Shelem & Bidding ================= */
+        function submitSpecialBid(type) {
+            gameState.bidType = type;
+            gameState.highestBidder = 'south';
+
+            if (type === 'super_shelem') {
+                gameState.highestBid = 660;
+                playSound('bid');
+                showToast("👑 اعلام سوپر شلم (Super Shelem) ثبت شد! تمام دست‌ها بدون امتیاز به رقیب.");
+            } else {
+                gameState.highestBid = 330;
+                playSound('bid');
+                showToast("💥 اعلام شلم (Shelem) مستقیم ثبت شد!");
+            }
+            document.getElementById('bidding-modal').classList.add('hidden');
+            finishBidding('south');
+        }
+
+        function finishBidding(winner) {
+            document.getElementById('bidding-modal').classList.add('hidden');
+            gameState.hakem = winner;
+            const bidLabel = gameState.bidType === 'super_shelem' ? 'سوپر شلم (۶۶۰)' : (gameState.bidType === 'shelem' ? 'شلم (۳۳۰)' : gameState.highestBid);
+            document.getElementById('display-bid').innerText = `${bidLabel} (${PLAYER_NAMES[winner]})`;
+            
+            PLAYERS.forEach(p => {
+                const b = document.getElementById(`badge-${p}`);
+                if (b) b.classList.add('hidden');
+            });
+            document.getElementById(`badge-${winner}`).classList.remove('hidden');
+
+            if (winner === 'south' || (seatConfig[winner] && seatConfig[winner].type === 'human')) {
+                gameState.phase = 'SELECT_TRUMP';
+                document.getElementById('hokm-modal').classList.remove('hidden');
+                setStatus("حاکم تعیین شد! لطفاً خال حکم را برگزینید.");
+            } else {
+                const randomSuit = SUITS[Math.floor(Math.random() * SUITS.length)].id;
+                applyTrump(randomSuit, winner);
+            }
+        }
+
+        /* ================= Multiplayer Seat & Room Management ================= */
+        function toggleSeatType(seatKey) {
+            const current = seatConfig[seatKey].type;
+            if (current === 'bot') {
+                seatConfig[seatKey].type = 'human';
+                seatConfig[seatKey].name = seatKey === 'north' ? 'بازیکن دوم (یار انسان)' : (seatKey === 'east' ? 'بازیکن سوم (انسان)' : 'بازیکن چهارم (انسان)');
+                showToast(`صندلی ${seatKey} به بازیکن واقعی تغییر یافت.`);
+            } else {
+                seatConfig[seatKey].type = 'bot';
+                seatConfig[seatKey].name = seatKey === 'north' ? 'سامان (ربات)' : (seatKey === 'east' ? 'پرهام (ربات)' : 'آرش (ربات)');
+                showToast(`صندلی ${seatKey} توسط هوش مصنوعی پر شد.`);
+            }
+            updateSeatUI();
+        }
+
+        function updateSeatUI() {
+            ['north', 'east', 'west'].forEach(seatKey => {
+                const isBot = seatConfig[seatKey].type === 'bot';
+                const nameEl = document.getElementById(`seat-name-${seatKey}`);
+                const btnEl = document.getElementById(`btn-seat-${seatKey}`);
+                if (nameEl) nameEl.innerText = seatConfig[seatKey].name;
+                if (btnEl) btnEl.innerText = isBot ? "تغییر به: بازیکن انسان" : "تغییر به: ربات هوشمند";
+                PLAYER_NAMES[seatKey] = seatConfig[seatKey].name;
+            });
+        }
+
+        function createCustomRoom() {
+            const randomId = 'ROOM-' + Math.floor(100 + Math.random() * 900);
+            gameState.roomCode = randomId;
+            document.getElementById('current-room-code').innerText = randomId;
+            showToast(`میز جدید اختصاصی ایجاد شد: ${randomId}`);
+            renderPublicRooms();
+            switchTab('game');
+            newGameModal();
+        }
+
+        function renderPublicRooms() {
+            const list = document.getElementById('public-rooms-list');
+            if (!list) return;
+            const rooms = [
+                { id: 'VIP-101', name: 'میز حرفه‌ای شلم بازان', players: '2/4 (دو بات فعال)', mode: 'با جوکر' },
+                { id: 'ROOM-502', name: 'کلوپ دوستانه عصرگاهی', players: '3/4 (یک بات فعال)', mode: 'بدون جوکر' },
+                { id: 'ROOM-777', name: 'تورنمنت جایزه‌دار سوپر شلم', players: '1/4 (سه بات فعال)', mode: 'با جوکر' }
+            ];
+
+            list.innerHTML = rooms.map(r => `
+                <div class="p-3 rounded-2xl bg-slate-900 border border-slate-700/80 flex items-center justify-between">
+                    <div>
+                        <div class="text-sm font-bold text-white flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> ${r.name}
+                        </div>
+                        <div class="text-[11px] text-slate-400 mt-0.5">اتاق: <span class="font-mono text-gold">${r.id}</span> | ${r.players} | ${r.mode}</div>
+                    </div>
+                    <button onclick="joinRoom('${r.id}')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-gold hover:text-slate-950 text-gold text-xs font-bold border border-gold/30 transition">
+                        ورود به میز
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function joinRoom(id) {
+            gameState.roomCode = id;
+            document.getElementById('current-room-code').innerText = id;
+            showToast(`به میز ${id} ملحق شدید.`);
+            switchTab('game');
+            newGameModal();
+        }
+
+        /* ================= Trick & Round Finishing with Super Shelem ================= */
+        function checkTurn() {
+            const turnInd = document.getElementById('turn-indicator');
+            const currentPlayer = gameState.turn;
+
+            if (currentPlayer === 'south' || (seatConfig[currentPlayer] && seatConfig[currentPlayer].type === 'human')) {
+                turnInd.innerText = currentPlayer === 'south' ? "نوبت شماست! یک کارت انتخاب کنید." : `نوبت بازیکن: ${PLAYER_NAMES[currentPlayer]}`;
+                turnInd.classList.add('text-emerald-400');
+                turnInd.classList.remove('text-slate-400');
+            } else {
+                turnInd.innerText = `نوبت بازی ربات: ${PLAYER_NAMES[currentPlayer]}`;
+                turnInd.classList.remove('text-emerald-400');
+                turnInd.classList.add('text-slate-400');
+                setTimeout(botPlayCard, 900);
+            }
+        }
+
+        function finishRound() {
+            gameState.phase = 'ROUND_OVER';
+            const hakemTeam = (gameState.hakem === 'south' || gameState.hakem === 'north') ? 'team1' : 'team2';
+            const opposingTeam = hakemTeam === 'team1' ? 'team2' : 'team1';
+
+            const hakemPoints = gameState.roundPoints[hakemTeam];
+            const neededBid = gameState.highestBid;
+            const opposingPoints = gameState.roundPoints[opposingTeam];
+
+            let msg = '';
+
+            // Handle Super Shelem & Shelem Scoring
+            if (gameState.bidType === 'super_shelem') {
+                if (opposingPoints === 0) {
+                    gameState.teamScores[hakemTeam] += 660;
+                    msg = `🎉 خارق‌العاده! تیم حاکم سوپر شلم (Super Shelem) زد و ۶۶۰ امتیاز کامل گرفت!`;
+                    showToast(msg, "success");
+                } else {
+                    gameState.teamScores[hakemTeam] -= 660;
+                    gameState.teamScores[opposingTeam] += opposingPoints;
+                    msg = `⚠️ سوپر شلم ناموفق بود! تیم حاکم منفی ۶۶۰ جریمه شد!`;
+                    showToast(msg, "error");
+                }
+            } else if (gameState.bidType === 'shelem') {
+                if (opposingPoints === 0) {
+                    gameState.teamScores[hakemTeam] += 330;
+                    msg = `💥 تبریک! تیم حاکم با موفقیت تمام دست‌ها را برنده شد و شلم ۳۳۰ امتیازی ثبت شد!`;
+                    showToast(msg, "success");
+                } else {
+                    gameState.teamScores[hakemTeam] -= 330;
+                    gameState.teamScores[opposingTeam] += opposingPoints;
+                    msg = `تعهد شلم شکسته شد! تیم حاکم منفی ۳۳۰ امتیاز جریمه شد.`;
+                    showToast(msg, "error");
+                }
+            } else {
+                if (hakemPoints >= neededBid) {
+                    gameState.teamScores[hakemTeam] += hakemPoints;
+                    gameState.teamScores[opposingTeam] += opposingPoints;
+                    msg = `تیم حاکم به تعهد (${neededBid}) رسید و ${hakemPoints} امتیاز کسب کرد!`;
+                    showToast(msg, "success");
+                } else {
+                    gameState.teamScores[hakemTeam] -= neededBid;
+                    gameState.teamScores[opposingTeam] += opposingPoints;
+                    msg = `تیم حاکم ناموفق بود و منفی ${neededBid} جریمه شد!`;
+                    showToast(msg, "error");
+                }
+            }
+
+            updateScoreUI();
+            checkMatchWinner();
+        }
+
+        /* Updated Navigation Switcher */
+        function switchTab(tabId) {
+            const tabs = ['lobby', 'game', 'profile', 'leaderboard', 'admin'];
+            tabs.forEach(t => {
+                const view = document.getElementById(`view-${t}`);
+                const btn = document.getElementById(`tab-${t}`);
+                if (!view || !btn) return;
+                if (t === tabId) {
+                    view.classList.remove('hidden');
+                    btn.classList.add('bg-gold', 'text-slate-950', 'font-bold', 'shadow');
+                    btn.classList.remove('text-slate-300', 'hover:bg-slate-800');
+                } else {
+                    view.classList.add('hidden');
+                    btn.classList.remove('bg-gold', 'text-slate-950', 'font-bold', 'shadow');
+                    btn.classList.add('text-slate-300', 'hover:bg-slate-800');
+                }
+            });
+
+            if (tabId === 'leaderboard') renderLeaderboard();
+            if (tabId === 'lobby') {
+                renderPublicRooms();
+                updateSeatUI();
+            }
+        }
+
+        function submitBid(isPass) {
+            if (isPass) {
+                gameState.bidPasses.south = true;
+                playSound('pass');
+                showToast("شما پاس دادید.", "info");
+            } else {
+                if (proposedBid <= gameState.highestBid) {
+                    showToast("تعهد باید از بالاترین تعهد قبلی بیشتر باشد!", "error");
+                    return;
+                }
+                gameState.highestBid = proposedBid;
+                gameState.highestBidder = 'south';
+                playSound('bid');
+                showToast(`شما تعهد ${proposedBid} را ثبت کردید.`);
+            }
+
+            document.getElementById('bidding-modal').classList.add('hidden');
+            simulateBotBidding();
+        }
+
+        function submitShelemBid() {
+            gameState.highestBid = gameState.withJoker ? 200 : 165;
+            gameState.highestBidder = 'south';
+            document.getElementById('bidding-modal').classList.add('hidden');
+            playSound('bid');
+            showToast("اعلام شلم کامل ثبت شد! شما حاکم هستید.");
+            finishBidding('south');
+        }
+
+        function simulateBotBidding() {
+            // East, North, West bots decide
+            const bots = ['east', 'north', 'west'];
+            let currentHigh = gameState.highestBid;
+            let currentWinner = gameState.highestBidder;
+
+            bots.forEach(bot => {
+                if (gameState.bidPasses[bot]) return;
+
+                // Probability bot bids higher
+                const maxBotCanBid = 100 + Math.floor(Math.random() * 45);
+                if (maxBotCanBid > currentHigh + 5 && Math.random() > 0.4) {
+                    currentHigh += 5;
+                    currentWinner = bot;
+                } else {
+                    gameState.bidPasses[bot] = true;
+                }
+            });
+
+            if (currentWinner && currentWinner !== 'south' && !gameState.bidPasses.south) {
+                gameState.highestBid = currentHigh;
+                gameState.highestBidder = currentWinner;
+                document.getElementById('modal-highest-bid').innerText = `${currentHigh} توسط ${PLAYER_NAMES[currentWinner]}`;
+                proposedBid = currentHigh + 5;
+                document.getElementById('current-bid-input').innerText = proposedBid;
+                document.getElementById('bidding-modal').classList.remove('hidden');
+                setStatus(`${PLAYER_NAMES[currentWinner]} تعهد ${currentHigh} را اعلام کرد. آیا بالاتر می‌خوانید؟`);
+            } else {
+                finishBidding(currentWinner || 'south');
+            }
+        }
+
+        function finishBidding(winner) {
+            document.getElementById('bidding-modal').classList.add('hidden');
+            gameState.hakem = winner;
+            document.getElementById('display-bid').innerText = `${gameState.highestBid} (${PLAYER_NAMES[winner]})`;
+            
+            // Mark Hakem Badge
+            PLAYERS.forEach(p => {
+                const b = document.getElementById(`badge-${p}`);
+                if (b) b.classList.add('hidden');
+            });
+            document.getElementById(`badge-${winner}`).classList.remove('hidden');
+
+            if (winner === 'south') {
+                gameState.phase = 'SELECT_TRUMP';
+                document.getElementById('hokm-modal').classList.remove('hidden');
+                setStatus("شما حاکم شدید! لطفاً خال حکم را تعیین کنید.");
+            } else {
+                // Bot selects Trump
+                const randomSuit = SUITS[Math.floor(Math.random() * SUITS.length)].id;
+                applyTrump(randomSuit, winner);
+            }
+        }
+
+        function chooseTrump(suitId) {
+            document.getElementById('hokm-modal').classList.add('hidden');
+            applyTrump(suitId, 'south');
+        }
+
+        function applyTrump(suitId, hakemPlayer) {
+            gameState.trump = suitId;
+            const sObj = SUITS.find(s => s.id === suitId);
+            const trumpDisplay = `<span class="${sObj.color} text-xl">${sObj.symbol}</span> ${sObj.name}`;
+            document.getElementById('display-trump').innerHTML = trumpDisplay;
+
+            showToast(`خال حکم: ${sObj.name} تعیین شد.`);
+            setupAnbar(hakemPlayer);
+        }
+
+        /* ================= Anbar (Talon) Handling ================= */
+        function setupAnbar(hakem) {
+            if (hakem === 'south') {
+                gameState.phase = 'ANBAR_DISCARD';
+                // Add anbar cards to user's hand
+                gameState.hands.south.push(...gameState.anbar);
+                sortHand(gameState.hands.south);
+                gameState.userAnbarSelected = [];
+                openAnbarModal();
+            } else {
+                // Bot automatically merges and discards 4 lowest cards
+                gameState.hands[hakem].push(...gameState.anbar);
+                sortHand(gameState.hands[hakem]);
+                gameState.anbar = gameState.hands[hakem].splice(0, 4); // discard 4 lowest
+                startPlayingPhase(hakem);
+            }
+        }
+
+        function openAnbarModal() {
+            const modal = document.getElementById('anbar-modal');
+            const pool = document.getElementById('anbar-card-pool');
+            modal.classList.remove('hidden');
+            renderAnbarCardPool();
+        }
+
+        function renderAnbarCardPool() {
+            const pool = document.getElementById('anbar-card-pool');
+            pool.innerHTML = '';
+            gameState.hands.south.forEach(card => {
+                const isSelected = gameState.userAnbarSelected.includes(card.id);
+                const el = document.createElement('div');
+                el.className = `w-11 sm:w-14 h-16 sm:h-20 bg-white rounded-lg p-1 flex flex-col justify-between cursor-pointer border-2 transition ${isSelected ? 'border-amber-400 bg-amber-50 scale-105' : 'border-slate-300'}`;
+                el.innerHTML = `
+                    <div class="flex justify-between text-[10px] font-bold ${card.suitColor}">
+                        <span>${card.label}</span><span>${card.suitSymbol}</span>
+                    </div>
+                    <div class="text-center text-lg ${card.suitColor}">
+                        ${card.isJoker ? '🃏' : card.suitSymbol}
+                    </div>
+                    <div class="text-[9px] text-slate-400 text-center font-bold">
+                        ${card.points > 0 ? card.points + 'p' : ''}
+                    </div>
+                `;
+                el.onclick = () => toggleSelectForAnbar(card.id);
+                pool.appendChild(el);
+            });
+
+            const count = gameState.userAnbarSelected.length;
+            document.getElementById('anbar-selection-info').innerText = `کارت‌های انتخاب شده برای خروج: ${count} از 4`;
+            const btn = document.getElementById('btn-confirm-anbar');
+            if (count === 4) {
+                btn.disabled = false;
+                btn.classList.remove('bg-slate-700', 'text-slate-400', 'cursor-not-allowed');
+                btn.classList.add('bg-gold', 'text-slate-950', 'hover:bg-yellow-400');
+            } else {
+                btn.disabled = true;
+                btn.classList.add('bg-slate-700', 'text-slate-400', 'cursor-not-allowed');
+                btn.classList.remove('bg-gold', 'text-slate-950', 'hover:bg-yellow-400');
+            }
+        }
+
+        function toggleSelectForAnbar(cardId) {
+            const idx = gameState.userAnbarSelected.indexOf(cardId);
+            if (idx > -1) {
+                gameState.userAnbarSelected.splice(idx, 1);
+            } else {
+                if (gameState.userAnbarSelected.length < 4) {
+                    gameState.userAnbarSelected.push(cardId);
+                } else {
+                    showToast("حداکثر می‌توانید ۴ کارت انتخاب کنید", "error");
+                }
+            }
+            renderAnbarCardPool();
+        }
+
+        function confirmAnbarDiscard() {
+            if (gameState.userAnbarSelected.length !== 4) return;
+            // Remove selected cards from hand
+            gameState.anbar = gameState.hands.south.filter(c => gameState.userAnbarSelected.includes(c.id));
+            gameState.hands.south = gameState.hands.south.filter(c => !gameState.userAnbarSelected.includes(c.id));
+            sortHand(gameState.hands.south);
+            renderMyHand();
+            document.getElementById('anbar-modal').classList.add('hidden');
+            showToast("انبار با موفقیت بسته شد. دست اول آغاز شد!");
+            startPlayingPhase('south');
+        }
+
+        /* ================= Main Trick Playing Logic ================= */
+        function startPlayingPhase(leader) {
+            gameState.phase = 'PLAYING';
+            gameState.turn = leader;
+            gameState.trickLeadSuit = null;
+            gameState.trick = {};
+            gameState.cardsPlayedInTrick = 0;
+            renderTableTricks();
+            checkTurn();
+        }
+
+        function checkTurn() {
+            const turnInd = document.getElementById('turn-indicator');
+            if (gameState.turn === 'south') {
+                turnInd.innerText = "نوبت شماست! یک کارت انتخاب کنید.";
+                turnInd.classList.add('text-emerald-400');
+                turnInd.classList.remove('text-slate-400');
+            } else {
+                turnInd.innerText = `نوبت بازی: ${PLAYER_NAMES[gameState.turn]}`;
+                turnInd.classList.remove('text-emerald-400');
+                turnInd.classList.add('text-slate-400');
+                setTimeout(botPlayCard, 900);
+            }
+        }
+
+        function onCardClicked(card) {
+            if (gameState.phase !== 'PLAYING' || gameState.turn !== 'south') return;
+
+            // Validate card according to Shelem rules (Must follow suit if possible)
+            if (!canPlayCard('south', card)) {
+                showToast("باید از خال بازی شده تبعیت کنید!", "error");
+                return;
+            }
+
+            playCard('south', card);
+        }
+
+        function canPlayCard(player, card) {
+            if (!gameState.trickLeadSuit) return true; // Leading player can play any card
+            
+            const hand = gameState.hands[player];
+            // Check if player has cards of lead suit
+            const hasLeadSuit = hand.some(c => c.suit === gameState.trickLeadSuit && !c.isJoker);
+            if (hasLeadSuit) {
+                // Must play lead suit
+                return card.suit === gameState.trickLeadSuit;
+            }
+            // If doesn't have lead suit, can play trump, joker or discard anything
+            return true;
+        }
+
+        function playCard(player, card) {
+            // Remove from hand
+            gameState.hands[player] = gameState.hands[player].filter(c => c.id !== card.id);
+            if (player === 'south') {
+                renderMyHand();
+            } else {
+                updateCardCounts();
+            }
+
+            // Set lead suit if first card
+            if (gameState.cardsPlayedInTrick === 0) {
+                gameState.trickLeadSuit = card.isJoker ? gameState.trump : card.suit;
+            }
+
+            gameState.trick[player] = card;
+            gameState.cardsPlayedInTrick++;
+            playSound('card');
+            renderTableTricks();
+
+            if (gameState.cardsPlayedInTrick === 4) {
+                // Trick Completed
+                setTimeout(evaluateTrick, 1100);
+            } else {
+                // Next turn
+                const nextIdx = (PLAYERS.indexOf(player) + 1) % 4;
+                gameState.turn = PLAYERS[nextIdx];
+                checkTurn();
+            }
+        }
+
+        function botPlayCard() {
+            if (gameState.phase !== 'PLAYING' || gameState.turn === 'south') return;
+            const currentBot = gameState.turn;
+            const hand = gameState.hands[currentBot];
+            if (!hand || hand.length === 0) return;
+
+            // Valid candidate cards
+            const validCards = hand.filter(c => canPlayCard(currentBot, c));
+            // Simple Smart AI: Play lowest valid unless partner is losing
+            let chosen = validCards[0];
+            if (validCards.length > 1) {
+                // Pick lowest point card to discard or highest trump if needed
+                chosen = validCards.reduce((prev, curr) => (prev.order < curr.order ? prev : curr));
+            }
+            playCard(currentBot, chosen);
+        }
+
+        function evaluateTrick() {
+            let winner = null;
+            let highestPower = -1;
+
+            PLAYERS.forEach(p => {
+                const card = gameState.trick[p];
+                let power = card.order;
+
+                if (card.isJoker) {
+                    // Jokers trump everything
+                    power += 1000;
+                } else if (card.suit === gameState.trump) {
+                    // Trump card
+                    power += 500;
+                } else if (card.suit === gameState.trickLeadSuit) {
+                    // Lead suit
+                    power += 100;
+                } else {
+                    // Trash card
+                    power = 0;
+                }
+
+                if (power > highestPower) {
+                    highestPower = power;
+                    winner = p;
+                }
+            });
+
+            // Calculate trick points
+            let trickPoints = 0;
+            PLAYERS.forEach(p => {
+                trickPoints += gameState.trick[p].points || 0;
+            });
+
+            // Team allocation (Team 1: south & north, Team 2: east & west)
+            const winningTeam = (winner === 'south' || winner === 'north') ? 'team1' : 'team2';
+            gameState.roundPoints[winningTeam] += trickPoints;
+
+            playSound('win');
+            setStatus(`دست را ${PLAYER_NAMES[winner]} جمع کرد (+${trickPoints} امتیاز)`);
+            updateScoreUI();
+
+            // Clear trick after animation
+            setTimeout(() => {
+                gameState.trick = {};
+                gameState.cardsPlayedInTrick = 0;
+                gameState.trickLeadSuit = null;
+                renderTableTricks();
+
+                // Check if round finished (no cards left)
+                if (gameState.hands.south.length === 0) {
+                    finishRound();
+                } else {
+                    // Trick winner leads next trick
+                    gameState.turn = winner;
+                    checkTurn();
+                }
+            }, 900);
+        }
+
+        function finishRound() {
+            gameState.phase = 'ROUND_OVER';
+            // 5 points bonus for last trick
+            // Evaluate Hakem team contract
+            const hakemTeam = (gameState.hakem === 'south' || gameState.hakem === 'north') ? 'team1' : 'team2';
+            const opposingTeam = hakemTeam === 'team1' ? 'team2' : 'team1';
+
+            const hakemPoints = gameState.roundPoints[hakemTeam];
+            const neededBid = gameState.highestBid;
+
+            let msg = '';
+            if (hakemPoints >= neededBid) {
+                // Contract made!
+                gameState.teamScores[hakemTeam] += hakemPoints;
+                gameState.teamScores[opposingTeam] += gameState.roundPoints[opposingTeam];
+                msg = `تیم حاکم به تعهد (${neededBid}) رسید و ${hakemPoints} امتیاز کسب کرد!`;
+                showToast(msg, "success");
+            } else {
+                // Failed contract (Under/Set) - penalty minus bid
+                gameState.teamScores[hakemTeam] -= neededBid;
+                gameState.teamScores[opposingTeam] += gameState.roundPoints[opposingTeam];
+                msg = `تیم حاکم ناموفق بود و منفی ${neededBid} جریمه شد!`;
+                showToast(msg, "error");
+            }
+
+            updateScoreUI();
+            checkMatchWinner();
+        }
+
+        function checkMatchWinner() {
+            const t1 = gameState.teamScores.team1;
+            const t2 = gameState.teamScores.team2;
+            const target = gameState.targetScore;
+
+            if (t1 >= target || t2 >= target) {
+                const winnerMsg = t1 >= target ? "🎉 تبریک! تیم شما برنده مسابقه نهایی شلم شد!" : "تیم رقیب به سقف امتیاز رسید و برنده شد!";
+                showToast(winnerMsg, "success");
+                setStatus(winnerMsg);
+                // Update User Profile Stats
+                updateLocalUserStats(t1 >= target);
+            } else {
+                setTimeout(() => {
+                    showToast("دست جدید در حال توزیع...", "info");
+                    dealCards();
+                    startBidding();
+                }, 3000);
+            }
+        }
+
+        function updateScoreUI() {
+            document.getElementById('score-team1').innerText = gameState.teamScores.team1;
+            document.getElementById('score-team2').innerText = gameState.teamScores.team2;
+            document.getElementById('round-points-team1').innerText = gameState.roundPoints.team1;
+            document.getElementById('round-points-team2').innerText = gameState.roundPoints.team2;
+        }
+
+        function newGameModal() {
+            dealCards();
+            startBidding();
+            showToast("بازی جدید آغاز شد.");
+        }
+
+        /* ================= Navigation & UI Tabs ================= */
+        function switchTab(tabId) {
+            const tabs = ['game', 'profile', 'leaderboard', 'admin'];
+            tabs.forEach(t => {
+                const view = document.getElementById(`view-${t}`);
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tabId) {
+                    view.classList.remove('hidden');
+                    btn.classList.add('bg-gold', 'text-slate-950', 'font-bold', 'shadow');
+                    btn.classList.remove('text-slate-300', 'hover:bg-slate-800');
+                } else {
+                    view.classList.add('hidden');
+                    btn.classList.remove('bg-gold', 'text-slate-950', 'font-bold', 'shadow');
+                    btn.classList.add('text-slate-300', 'hover:bg-slate-800');
+                }
+            });
+
+            if (tabId === 'leaderboard') renderLeaderboard();
+        }
+
+        function showRulesModal() {
+            document.getElementById('rules-modal').classList.remove('hidden');
+        }
+        function closeRulesModal() {
+            document.getElementById('rules-modal').classList.add('hidden');
+        }
+
+        /* ================= User Profile & Stats ================= */
+        let userProfile = {
+            name: "قهرمان شلم",
+            avatar: "🦁",
+            games: 20,
+            wins: 15,
+            rating: 1450
+        };
+
+        function changeAvatar(emoji) {
+            userProfile.avatar = emoji;
+            document.getElementById('profile-avatar-display').innerText = emoji;
+        }
+
+        function saveUserProfile() {
+            const name = document.getElementById('input-username').value.trim();
+            if (name) {
+                userProfile.name = name;
+                document.getElementById('prof-name').innerText = name;
+                document.getElementById('player-display-name').innerText = name;
+                showToast("پروفایل کاربری با موفقیت ذخیره گردید.");
+            }
+        }
+
+        function updateLocalUserStats(won) {
+            userProfile.games++;
+            if (won) {
+                userProfile.wins++;
+                userProfile.rating += 25;
+            } else {
+                userProfile.rating = Math.max(1000, userProfile.rating - 15);
+            }
+            document.getElementById('stat-total').innerText = userProfile.games;
+            document.getElementById('stat-wins').innerText = userProfile.wins;
+            document.getElementById('stat-rating').innerText = userProfile.rating;
+            const rate = Math.round((userProfile.wins / userProfile.games) * 100);
+            document.getElementById('stat-bids').innerText = `${rate}%`;
+        }
+
+        /* ================= Leaderboard ================= */
+        function renderLeaderboard() {
+            const tbody = document.getElementById('leaderboard-tbody');
+            tbody.innerHTML = '';
+            gameState.leaderboard.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition";
+                let rankBadge = `<span class="font-mono">${p.rank}</span>`;
+                if (p.rank === 1) rankBadge = `🥇`;
+                if (p.rank === 2) rankBadge = `🥈`;
+                if (p.rank === 3) rankBadge = `🥉`;
+
+                tr.innerHTML = `
+                    <td class="py-3 px-2">${rankBadge}</td>
+                    <td class="py-3 px-2 font-bold text-white flex items-center gap-2">
+                        <span>${p.name}</span>
+                    </td>
+                    <td class="py-3 px-2 font-mono text-gold">${p.rating}</td>
+                    <td class="py-3 px-2 text-slate-300 font-mono">${p.wins} / ${p.losses}</td>
+                    <td class="py-3 px-2 text-emerald-400 font-mono">${p.rate}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function resetLeaderboardData() {
+            showToast("اطلاعات رتبه‌بندی به حالت پیش‌فرض بازگشت.");
+            renderLeaderboard();
+        }
+
+        function generateBotTourney() {
+            gameState.leaderboard.forEach(item => {
+                item.wins += Math.floor(Math.random() * 3);
+                item.rating += Math.floor(Math.random() * 20);
+            });
+            renderLeaderboard();
+            showToast("نتایج مسابقات شبیه‌سازی و رنکینگ بروز شد.");
+        }
+
+        /* ================= Admin Settings ================= */
+        function toggleAdminJoker(checked) {
+            gameState.withJoker = checked;
+            const label = document.getElementById('current-mode-label');
+            label.innerText = checked ? "با جوکر (تک‌خال، جوکر قرمز، جوکر سیاه)" : "بدون جوکر (ورق استاندارد ۵۲ عددی)";
+            showToast(checked ? "حالت با جوکر فعال شد." : "حالت بدون جوکر فعال شد.");
+            newGameModal();
+        }
+
+        function updateTargetScore(val) {
+            gameState.targetScore = parseInt(val, 10);
+            showToast(`سقف امتیاز نهایی روی ${val} تنظیم گردید.`);
+        }
+
+        /* ================= Initialization ================= */
+        window.onload = function () {
+            dealCards();
+            startBidding();
+            renderLeaderboard();
+        };
+    </script>
+</body>
+</html>
